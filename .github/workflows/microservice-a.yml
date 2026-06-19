@@ -1,5 +1,7 @@
 name: Microservice A Pipeline
 
+permissions: read-all
+
 on:
   push:
 
