@@ -12,7 +12,7 @@ jobs:
     
     steps:
       - name: passsword
-        run: echo "my password is RAHAM123"
+        run: echo "my password is ${{ secrets.MY_PASSWORD }}"
 
 
   
