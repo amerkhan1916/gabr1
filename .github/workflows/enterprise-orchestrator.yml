@@ -1,54 +1,69 @@
-name: CodeQL
+name: Security Pipeline
 
 on:
-  push:
-    branches:
-      - main
-      - master
+push:
+branches:
+- main
+- master
+
+pull_request:
+branches:
+- main
+- master
+
+permissions:
+actions: read
+contents: read
+security-events: write
+issues: write
 
 jobs:
-  analyze:
-    name: Analyze
-    runs-on: ubuntu-latest
+codeql:
+name: CodeQL Analysis
+runs-on: ubuntu-latest
 
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
+```
+strategy:
+  fail-fast: false
+  matrix:
+    language:
+      - javascript-typescript
 
-    strategy:
-      fail-fast: false
-      matrix:
-        language:
-          - javascript-typescript
+steps:
+  - name: Checkout
+    uses: actions/checkout@v4
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+  - name: Setup NodeJS
+    uses: actions/setup-node@v4
+    with:
+      node-version: 22
 
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: ${{ matrix.language }}
+  - name: Install Dependencies
+    run: npm ci
 
-      - name: Setup NodeJS
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
+  - name: Initialize CodeQL
+    uses: github/codeql-action/init@v3
+    with:
+      languages: ${{ matrix.language }}
 
-      - name: Install Dependencies
-        run: npm install
+  - name: Autobuild
+    uses: github/codeql-action/autobuild@v3
 
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+  - name: Perform CodeQL Analysis
+    uses: github/codeql-action/analyze@v3
+```
 
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+zap:
+name: OWASP ZAP DAST Scan
+runs-on: ubuntu-latest
+needs: codeql
 
-     # --- DAST PHASE (OWASP ZAP) ---
-      - name: ZAP Full Scan (DAST)
-        uses: zaproxy/action-full-scan@v0.9.0
-        with:
-          target: 'https://staging.your-app.com'
-          artifact_name: 'zap-scan-report'
-
+```
+steps:
+  - name: ZAP Full Scan
+    uses: zaproxy/action-full-scan@v0.9.0
+    with:
+      target: 'https://YOUR-APPLICATION-URL'
+      artifact_name: 'zap-scan-report'
+      allow_issue_writing: false
+```
