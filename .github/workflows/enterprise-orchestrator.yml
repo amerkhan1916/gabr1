@@ -1,28 +1,12 @@
 name:  NodeJs
 
-on:
+on: 
   push:
-    branches: master
-
-
-permissions: 
-   security-events: write
-   issues: write
-   actions: read
-   contents: read
-
+     branch: master
+  
 jobs: 
-  build:
-    runs-on: self-hosted
-
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-        node-version: [18, 20, 22]
-        exclude:
-          - os: windows-latest
-            node-version: 22
-
+  Build-Test: 
+    runs-on:  ubuntu-latest
     steps: 
       - name:  Checkout Code
         uses:  actions/checkout@v7
@@ -37,20 +21,6 @@ jobs:
 
       - name: test
         run: npm test
-
-
-      - name: Cache Dependencies
-        uses: actions/cache@v5
-        with:
-          path: ~/.npm
-          key:  ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          
-      - name: Artifact upload
-        uses: actions/upload-artifact@v7
-        with:
-          name: artifact-1
-          path: |
-             package*
 
       - name: Deploy
         run: echo "code is deployed"
